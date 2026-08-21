@@ -1,0 +1,48 @@
+[package]
+name = "firmware"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# Embassy async runtime and RP2040 HAL
+embassy-executor = "0.10.0"
+embassy-time = "0.5.1"
+embassy-sync = "0.8.0"
+# Default max-interface-count (4) only fits the two CDC-ACM classes (2
+# interfaces each); the reset interface (src/reset.rs) needs a 5th.
+embassy-usb = { version = "0.6.0", features = ["max-interface-count-5"] }
+embassy-rp = { version = "0.10.0", features = [
+  "unstable-pac",
+  "time-driver",
+  "critical-section-impl",
+  "rp2040",
+  "executor-thread",
+] }
+
+# Cortex-M runtime support
+cortex-m = { version = "0.7.9", features = ["inline-asm"] }
+cortex-m-rt = "0.7.6"
+critical-section = "1.2"
+
+# Panic handling: just halt, no debug probe/defmt tooling to report through.
+panic-halt = "1.0.0"
+
+# Buffers/collections for the USB protocol parser and plain-text log lines
+# (no_std, no alloc).
+heapless = "0.9"
+static_cell = "2.1"
+
+# Cortex-M0+ (thumbv6m) has no native CAS atomics; portable-atomic (pulled in
+# transitively by embassy) needs to fall back to critical-section based
+# atomic emulation.
+portable-atomic = { version = "1.15", features = ["critical-section"] }
+
+[profile.release]
+# Enable generation of debug symbols even on release builds.
+debug = true
+lto = true
+opt-level = "s"
+
+[profile.dev]
+debug = true
+opt-level = 1

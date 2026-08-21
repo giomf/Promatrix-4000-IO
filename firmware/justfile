@@ -1,0 +1,30 @@
+default: flash
+
+build:
+    cargo build
+
+build-release:
+    cargo build --release
+
+# `-f` reboots a running board into BOOTSEL mode itself via the reset
+# interface (see src/reset.rs); only hold the BOOT button for a board that
+# isn't running this firmware yet (blank, or a crashed/panicked build).
+# `--vid 0` is required: without it picotool only looks for Raspberry Pi's
+# own vendor ID and never checks for our (thirdparty, pid.codes) VID's reset
+# interface at all.
+flash: build
+    sudo picotool load -f --vid 0 -x -t elf target/thumbv6m-none-eabi/debug/firmware
+
+flash-release: build-release
+    sudo picotool load -f --vid 0 -x -t elf target/thumbv6m-none-eabi/release/firmware
+
+# plain-text logs on the second USB CDC-ACM interface (port varies, check /dev/ttyACM*)
+logs port="/dev/ttyACM1":
+    cat {{port}}
+
+# interactive command/event protocol port (first USB CDC-ACM interface, port varies, check /dev/ttyACM*)
+# use picocom rather than cat/screen: it puts the port in raw mode, so it won't
+# echo received EVT lines back to the device (which the firmware would then
+# reject as bad commands). exit with Ctrl-A Ctrl-X.
+console port="/dev/ttyACM0":
+    picocom -b 115200 {{port}}
