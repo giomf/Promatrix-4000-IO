@@ -1,0 +1,11 @@
+default: build
+
+build:
+    cargo build
+
+build-release:
+    cargo build --release
+
+# forwards any extra args, e.g. `just run list` or `just run -- get --port /dev/ttyACM0`
+run *args:
+    cargo run -- {{args}}

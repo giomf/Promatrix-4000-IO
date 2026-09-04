@@ -2,7 +2,7 @@
 //!
 //! The RP2040 enumerates as a composite USB device exposing two CDC-ACM
 //! ("virtual serial port") interfaces: the first carries the line-based
-//! protocol described in [`crate::protocol`], the second carries plain-text
+//! protocol described in [`protocol`], the second carries plain-text
 //! logs (see [`crate::log`]). Talk to the first with any regular serial
 //! terminal/library (e.g. Python's `pyserial`).
 

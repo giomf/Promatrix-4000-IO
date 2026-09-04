@@ -1,13 +1,16 @@
 //! Async tasks: USB read/write pumps, output command handling, and input
 //! change detection.
 
+use core::fmt::Write as _;
+
 use embassy_rp::gpio::Input;
 use embassy_time::Timer;
 use embassy_usb::driver::EndpointError;
 
+use protocol::{Command, Event};
+
 use crate::channels::{COMMANDS, EVENTS};
 use crate::io::Outputs;
-use crate::protocol::{self, Command, Event};
 use crate::state;
 use crate::usb::UsbDriver;
 
@@ -30,7 +33,7 @@ pub async fn usb_reader_task(mut receiver: embassy_usb::class::cdc_acm::Receiver
                         if b == b'\n' || b == b'\r' {
                             if !line.is_empty() {
                                 if let Ok(text) = core::str::from_utf8(&line) {
-                                    match protocol::parse(text) {
+                                    match protocol::parse_command(text) {
                                         Ok(cmd) => {
                                             if COMMANDS.try_send(cmd).is_err() {
                                                 crate::log_warn!("command queue full, dropping command");
@@ -62,7 +65,8 @@ pub async fn usb_reader_task(mut receiver: embassy_usb::class::cdc_acm::Receiver
 pub async fn usb_writer_task(mut sender: embassy_usb::class::cdc_acm::Sender<'static, UsbDriver>) {
     loop {
         let event = EVENTS.receive().await;
-        let line = protocol::format(&event);
+        let mut line: heapless::String<64> = heapless::String::new();
+        let _ = write!(line, "{event}");
 
         if sender.write_packet(line.as_bytes()).await.is_err() {
             // Host not connected (or gone away); drop the event rather than

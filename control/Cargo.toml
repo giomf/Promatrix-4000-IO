@@ -1,0 +1,15 @@
+[package]
+name = "control"
+version = "0.1.0"
+edition = "2024"
+autobins = false
+
+[[bin]]
+name = "promatrix"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive", "env"] }
+protocol = { path = "../protocol" }
+serialport = "4"

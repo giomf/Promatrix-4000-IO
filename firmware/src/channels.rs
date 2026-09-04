@@ -1,10 +1,9 @@
-//! Channels used to shuttle [`crate::protocol::Command`]s and
-//! [`crate::protocol::Event`]s between tasks.
+//! Channels used to shuttle [`protocol::Command`]s and [`protocol::Event`]s
+//! between tasks.
 
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::channel::Channel;
-
-use crate::protocol::{Command, Event};
+use protocol::{Command, Event};
 
 /// Commands parsed from the USB host, waiting to be applied to the outputs.
 pub static COMMANDS: Channel<CriticalSectionRawMutex, Command, 8> = Channel::new();

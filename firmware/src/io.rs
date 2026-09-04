@@ -37,10 +37,9 @@ use embassy_rp::peripherals::{
     PIN_13, PIN_14,
 };
 
-/// Number of digital outputs (`Out1..=Out8`).
-pub const NUM_OUTPUTS: usize = 8;
-/// Number of digital inputs actually wired on the board (`In1..=In7`).
-pub const NUM_INPUTS: usize = 7;
+/// Number of digital outputs/inputs, re-exported from the shared wire
+/// protocol crate since it also defines the `STATUS` bitmask widths.
+pub use protocol::{NUM_INPUTS, NUM_OUTPUTS};
 
 /// Physical pins required to build [`Outputs`], in `Out1..=Out8` order.
 pub struct OutputPins {

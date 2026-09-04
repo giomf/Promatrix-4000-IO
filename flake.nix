@@ -29,6 +29,10 @@
           pkgs.picotool
           pkgs.just
           pkgs.picocom
+          # For the `control` host tool: serialport's Linux backend
+          # (libudev-sys, used for port enumeration) needs these to build.
+          pkgs.pkg-config
+          pkgs.udev
         ];
       };
     };

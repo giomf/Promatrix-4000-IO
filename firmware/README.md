@@ -84,7 +84,10 @@ EVT IN <channel> <0|1>            input <channel> (1..=7) changed, sent as soon 
 STATUS OUT <8 bits> IN <7 bits>   full snapshot, sent in response to GET, MSB = highest channel
 ```
 
-See `src/protocol.rs` for the exact grammar.
+See `../protocol/src/lib.rs` for the exact grammar (a small `#![no_std]`
+crate shared with the host control tool in `../control`, so the two can't
+drift apart). `../control`'s `promatrix` CLI speaks it out of the box; see
+`../control/README.md`.
 
 ## Layout
 
@@ -92,7 +95,6 @@ See `src/protocol.rs` for the exact grammar.
 * `src/io.rs` – physical GPIO <-> logical channel mapping for outputs/inputs.
 * `src/usb.rs` – USB CDC-ACM device/class setup (data + log interfaces).
 * `src/log.rs` – plain-text logging over the second CDC-ACM interface.
-* `src/protocol.rs` – host <-> device wire protocol (parsing/formatting).
 * `src/reset.rs` – vendor USB interface letting `picotool -f` reboot the
   board into BOOTSEL mode without the BOOT button.
 * `src/channels.rs` – inter-task queues (parsed commands, outgoing events).
@@ -101,4 +103,7 @@ See `src/protocol.rs` for the exact grammar.
   one input-watcher task per input pin.
 * `memory.x` / `build.rs` – RP2040 linker memory layout.
 * `.cargo/config.toml` – build target and `cargo run`'s `picotool` runner.
+
+See also `../protocol` (shared wire protocol) and `../control` (host CLI
+and library).
 * `justfile` – build/flash/log recipes (see `just --list`).

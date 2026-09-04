@@ -12,7 +12,6 @@
 mod channels;
 mod io;
 mod log;
-mod protocol;
 mod reset;
 mod state;
 mod tasks;
