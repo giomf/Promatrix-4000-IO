@@ -20,6 +20,24 @@
       toolchain = pkgs.rust-bin.fromRustupToolchainFile ./firmware/rust-toolchain.toml;
     in
     {
+      packages.${system}.default = pkgs.rustPlatform.buildRustPackage {
+        pname = "promatrix-control";
+        version = "0.1.0";
+        src = pkgs.lib.fileset.toSource {
+          root = ./.;
+          fileset = pkgs.lib.fileset.unions [
+            ./control
+            ./protocol
+          ];
+        };
+        cargoRoot = "control";
+        buildAndTestSubdir = "control";
+        cargoLock.lockFile = ./control/Cargo.lock;
+        nativeBuildInputs = [ pkgs.pkg-config ];
+        buildInputs = [ pkgs.udev ];
+        meta.mainProgram = "promatrix";
+      };
+
       devShells.${system}.default = pkgs.mkShell {
         buildInputs = [
           toolchain
