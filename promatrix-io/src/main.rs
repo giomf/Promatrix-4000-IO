@@ -1,4 +1,4 @@
-//! `promatrix` — command-line control tool for a Promatrix-4000-IO board.
+//! `promatrix-io` — command-line control tool for a Promatrix-4000-IO board.
 
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};

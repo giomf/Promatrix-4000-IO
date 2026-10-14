@@ -21,21 +21,21 @@
     in
     {
       packages.${system}.default = pkgs.rustPlatform.buildRustPackage {
-        pname = "promatrix-control";
+        pname = "promatrix-io";
         version = "0.1.0";
         src = pkgs.lib.fileset.toSource {
           root = ./.;
           fileset = pkgs.lib.fileset.unions [
-            ./control
+            ./promatrix-io
             ./protocol
           ];
         };
-        cargoRoot = "control";
-        buildAndTestSubdir = "control";
-        cargoLock.lockFile = ./control/Cargo.lock;
+        cargoRoot = "promatrix-io";
+        buildAndTestSubdir = "promatrix-io";
+        cargoLock.lockFile = ./promatrix-io/Cargo.lock;
         nativeBuildInputs = [ pkgs.pkg-config ];
         buildInputs = [ pkgs.udev ];
-        meta.mainProgram = "promatrix";
+        meta.mainProgram = "promatrix-io";
       };
 
       devShells.${system}.default = pkgs.mkShell {
@@ -47,7 +47,7 @@
           pkgs.picotool
           pkgs.just
           pkgs.picocom
-          # For the `control` host tool: serialport's Linux backend
+          # For the `promatrix-io` host tool: serialport's Linux backend
           # (libudev-sys, used for port enumeration) needs these to build.
           pkgs.pkg-config
           pkgs.udev

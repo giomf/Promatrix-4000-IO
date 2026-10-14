@@ -1,6 +1,6 @@
 # control
 
-Host-side Rust library + CLI (`promatrix`) for talking to a
+Host-side Rust library + CLI (`promatrix-io`) for talking to a
 Promatrix-4000-IO board over the USB CDC-ACM serial port its firmware
 exposes: set outputs, request a status snapshot, and stream input-change
 events. Speaks the wire protocol defined in `../protocol` — the same crate
@@ -56,5 +56,5 @@ understand) are silently dropped.
 
 * `src/lib.rs` – `Client`: opens the port, streams events off a background
   thread, sends commands.
-* `src/main.rs` – `promatrix` CLI built on top of the library.
+* `src/main.rs` – `promatrix-io` CLI built on top of the library.
 * `justfile` – build/run recipes.

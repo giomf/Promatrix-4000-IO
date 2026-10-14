@@ -85,9 +85,9 @@ STATUS OUT <8 bits> IN <7 bits>   full snapshot, sent in response to GET, MSB = 
 ```
 
 See `../protocol/src/lib.rs` for the exact grammar (a small `#![no_std]`
-crate shared with the host control tool in `../control`, so the two can't
-drift apart). `../control`'s `promatrix` CLI speaks it out of the box; see
-`../control/README.md`.
+crate shared with the host control tool in `../promatrix-io`, so the two can't
+drift apart). `../promatrix-io`'s `promatrix-io` CLI speaks it out of the box; see
+`../promatrix-io/README.md`.
 
 ## Layout
 
@@ -104,6 +104,6 @@ drift apart). `../control`'s `promatrix` CLI speaks it out of the box; see
 * `memory.x` / `build.rs` – RP2040 linker memory layout.
 * `.cargo/config.toml` – build target and `cargo run`'s `picotool` runner.
 
-See also `../protocol` (shared wire protocol) and `../control` (host CLI
+See also `../protocol` (shared wire protocol) and `../promatrix-io` (host CLI
 and library).
 * `justfile` – build/flash/log recipes (see `just --list`).
