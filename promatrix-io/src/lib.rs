@@ -25,8 +25,8 @@ impl Client {
     /// listening for events on a background thread.
     pub fn open(path: &str) -> io::Result<Self> {
         let port = serialport::new(path, 115_200)
-            // Long rather than infinite: only needed so a read eventually
-            // returns and notices the port has gone away, not to poll.
+            // serialport has no "no timeout"; reads that time out are just
+            // retried below, a disconnect shows up as a different error.
             .timeout(Duration::from_secs(60 * 60))
             .open()
             .map_err(|e| io::Error::other(format!("opening {path}: {e}")))?;
@@ -34,8 +34,16 @@ impl Client {
 
         let (tx, rx) = mpsc::channel();
         thread::spawn(move || {
-            for line in BufReader::new(reader).lines() {
-                let Ok(line) = line else { break };
+            let mut reader = BufReader::new(reader);
+            let mut line = String::new();
+            loop {
+                match reader.read_line(&mut line) {
+                    // Quiet line, not a disconnect; any partial line read so
+                    // far stays in `line` and is completed by the next read.
+                    Err(e) if e.kind() == io::ErrorKind::TimedOut => continue,
+                    Ok(0) | Err(_) => break,
+                    Ok(_) => {}
+                }
                 if let Ok(event) = protocol::parse_event(&line)
                     && tx.send(event).is_err()
                 {
@@ -44,6 +52,7 @@ impl Client {
                 // Unrecognized lines (stray log output, an `ERR ...`
                 // response the firmware doesn't currently emit, etc.) are
                 // silently dropped rather than surfaced as an error.
+                line.clear();
             }
         });
 
