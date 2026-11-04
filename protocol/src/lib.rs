@@ -13,14 +13,13 @@
 //! ## Device -> host
 //!
 //! ```text
-//! EVT IN <channel> <0|1>\n            -- input <channel> (1..=7) changed
+//! EVT IN <channel> <0|1>\n            -- input <channel> (2..=8) changed
 //! STATUS OUT <8 bits> IN <7 bits>\n   -- full snapshot, MSB = highest channel
 //! ```
 //!
-//! Channels are 1-indexed on the wire (`Out1`..`Out8`, `In1`..`In7`) but
-//! 0-indexed in [`Command`]/[`Event`] (to match array indexing on the
-//! firmware side); the `Display` impls and `parse_*` functions below do the
-//! conversion at the wire boundary.
+//! Outputs and inputs use the board label number everywhere (`Out1`..`Out8`,
+//! `In2`..`In8`, `In1` is the clock); only the `STATUS` bitmasks are offset,
+//! bit `n` == `Out{n+1}` / `In{n+2}`.
 //!
 //! The protocol is intentionally minimal; feel free to replace it with
 //! something more efficient (e.g. a small binary framing) once the real
@@ -35,14 +34,16 @@ use core::fmt;
 
 /// Number of digital outputs (`Out1..=Out8`).
 pub const NUM_OUTPUTS: usize = 8;
-/// Number of digital inputs actually wired on the board (`In1..=In7`).
+/// Number of digital inputs actually wired on the board (`In2..=In8`).
 pub const NUM_INPUTS: usize = 7;
+/// Wire/label number of the first input; `In1` is the clock.
+pub const FIRST_INPUT: u8 = 2;
 
 /// A command sent from the host to the device.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Command {
-    /// Set output `channel` (0-indexed, 0 == `Out1`) to `value`.
-    SetOutput { channel: u8, value: bool },
+    /// Set output `output` (board label number, `1..=8`) to `value`.
+    SetOutput { output: u8, value: bool },
     /// Request a full [`Event::Status`] snapshot.
     GetStatus,
 }
@@ -51,8 +52,8 @@ pub enum Command {
 /// response to a [`Command::GetStatus`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Event {
-    /// Input `channel` (0-indexed, 0 == `In1`) changed to `value`.
-    InputChanged { channel: u8, value: bool },
+    /// Input `input` (board label number, `2..=8`) changed to `value`.
+    InputChanged { input: u8, value: bool },
     /// Full snapshot of all outputs/inputs.
     Status { outputs: u8, inputs: u8 },
 }
@@ -68,16 +69,16 @@ pub fn parse_command(line: &str) -> Result<Command, &'static str> {
 
     match parts.next() {
         Some("SET") => {
-            let channel: u8 = parts.next().ok_or("missing channel")?.parse().map_err(|_| "bad channel")?;
+            let output: u8 = parts.next().ok_or("missing channel")?.parse().map_err(|_| "bad channel")?;
             let value = match parts.next().ok_or("missing value")? {
                 "1" => true,
                 "0" => false,
                 _ => return Err("bad value"),
             };
-            if channel == 0 || channel as usize > NUM_OUTPUTS {
+            if output == 0 || output as usize > NUM_OUTPUTS {
                 return Err("channel out of range");
             }
-            Ok(Command::SetOutput { channel: channel - 1, value })
+            Ok(Command::SetOutput { output, value })
         }
         Some("GET") => Ok(Command::GetStatus),
         Some(_) => Err("unknown command"),
@@ -89,7 +90,7 @@ impl fmt::Display for Command {
     /// Formats as a `\n`-terminated line ready to send to the device.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            Command::SetOutput { channel, value } => writeln!(f, "SET {} {}", channel + 1, value as u8),
+            Command::SetOutput { output, value } => writeln!(f, "SET {} {}", output, value as u8),
             Command::GetStatus => writeln!(f, "GET"),
         }
     }
@@ -112,16 +113,16 @@ fn parse_event_inner(line: &str) -> Option<Event> {
             if parts.next()? != "IN" {
                 return None;
             }
-            let channel: u8 = parts.next()?.parse().ok()?;
+            let input: u8 = parts.next()?.parse().ok()?;
             let value = match parts.next()? {
                 "1" => true,
                 "0" => false,
                 _ => return None,
             };
-            if channel == 0 || channel as usize > NUM_INPUTS {
+            if !(FIRST_INPUT..FIRST_INPUT + NUM_INPUTS as u8).contains(&input) {
                 return None;
             }
-            Some(Event::InputChanged { channel: channel - 1, value })
+            Some(Event::InputChanged { input, value })
         }
         "STATUS" => {
             if parts.next()? != "OUT" {
@@ -158,7 +159,7 @@ impl fmt::Display for Event {
     /// Formats as a `\n`-terminated line ready to send to the host.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            Event::InputChanged { channel, value } => writeln!(f, "EVT IN {} {}", channel + 1, value as u8),
+            Event::InputChanged { input, value } => writeln!(f, "EVT IN {} {}", input, value as u8),
             Event::Status { outputs, inputs } => {
                 writeln!(f, "STATUS OUT {} IN {}", Bits(outputs, NUM_OUTPUTS), Bits(inputs, NUM_INPUTS))
             }
@@ -187,15 +188,15 @@ mod tests {
 
     #[test]
     fn round_trips_commands() {
-        assert_eq!(parse_command("SET 3 1"), Ok(Command::SetOutput { channel: 2, value: true }));
-        assert_eq!(parse_command("SET 8 0"), Ok(Command::SetOutput { channel: 7, value: false }));
+        assert_eq!(parse_command("SET 3 1"), Ok(Command::SetOutput { output: 3, value: true }));
+        assert_eq!(parse_command("SET 8 0"), Ok(Command::SetOutput { output: 8, value: false }));
         assert_eq!(parse_command("GET"), Ok(Command::GetStatus));
         assert_eq!(parse_command("SET 9 1"), Err("channel out of range"));
         assert_eq!(parse_command("SET 0 1"), Err("channel out of range"));
         assert_eq!(parse_command("nonsense"), Err("unknown command"));
 
         assert_eq!(
-            std::format!("{}", Command::SetOutput { channel: 2, value: true }),
+            std::format!("{}", Command::SetOutput { output: 3, value: true }),
             "SET 3 1\n"
         );
         assert_eq!(std::format!("{}", Command::GetStatus), "GET\n");
@@ -203,16 +204,19 @@ mod tests {
 
     #[test]
     fn round_trips_events() {
-        assert_eq!(parse_event("EVT IN 4 1"), Ok(Event::InputChanged { channel: 3, value: true }));
+        assert_eq!(parse_event("EVT IN 4 1"), Ok(Event::InputChanged { input: 4, value: true }));
         assert_eq!(
             parse_event("STATUS OUT 10000000 IN 0000001\n"),
             Ok(Event::Status { outputs: 0b1000_0000, inputs: 0b0000_0001 })
         );
         assert_eq!(parse_event(""), Err(""));
         assert_eq!(parse_event("EVT IN x 1"), Err("EVT IN x 1"));
+        assert_eq!(parse_event("EVT IN 1 1"), Err("EVT IN 1 1"));
+        assert_eq!(parse_event("EVT IN 9 1"), Err("EVT IN 9 1"));
+        assert_eq!(parse_event("EVT IN 8 1"), Ok(Event::InputChanged { input: 8, value: true }));
 
         assert_eq!(
-            std::format!("{}", Event::InputChanged { channel: 3, value: true }),
+            std::format!("{}", Event::InputChanged { input: 4, value: true }),
             "EVT IN 4 1\n"
         );
         assert_eq!(

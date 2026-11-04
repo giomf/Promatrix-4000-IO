@@ -29,24 +29,24 @@ async fn main(spawner: Spawner) {
     crate::log_info!("Promatrix-4000-IO firmware starting");
 
     let outputs = Outputs::new(OutputPins {
-        out1: p.PIN_0,
-        out2: p.PIN_1,
-        out3: p.PIN_2,
-        out4: p.PIN_3,
-        out5: p.PIN_4,
-        out6: p.PIN_5,
-        out7: p.PIN_6,
-        out8: p.PIN_7,
+        out1: p.PIN_4,
+        out2: p.PIN_5,
+        out3: p.PIN_6,
+        out4: p.PIN_7,
+        out5: p.PIN_0,
+        out6: p.PIN_1,
+        out7: p.PIN_2,
+        out8: p.PIN_3,
     });
 
     let Inputs(input_pins) = Inputs::new(InputPins {
-        in1: p.PIN_10,
-        in2: p.PIN_9,
-        in3: p.PIN_8,
-        in4: p.PIN_14,
-        in5: p.PIN_13,
-        in6: p.PIN_12,
-        in7: p.PIN_11,
+        in2: p.PIN_10,
+        in3: p.PIN_9,
+        in4: p.PIN_8,
+        in5: p.PIN_14,
+        in6: p.PIN_13,
+        in7: p.PIN_12,
+        in8: p.PIN_11,
     });
 
     let Usb { device, sender, receiver, log_sender } = usb::init(p.USB, p.FLASH);
@@ -57,7 +57,7 @@ async fn main(spawner: Spawner) {
     spawner.spawn(tasks::usb_writer_task(sender).unwrap());
     spawner.spawn(tasks::output_task(outputs).unwrap());
 
-    for (channel, pin) in input_pins.into_iter().enumerate() {
-        spawner.spawn(tasks::input_task(pin, channel as u8).unwrap());
+    for (input, pin) in (protocol::FIRST_INPUT..).zip(input_pins) {
+        spawner.spawn(tasks::input_task(pin, input).unwrap());
     }
 }

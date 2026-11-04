@@ -2,33 +2,31 @@
 //!
 //! ## Outputs
 //!
-//! Driven through a ULN2803A Darlington array. Setting a GPIO high turns the
-//! corresponding Darlington transistor on, sinking the attached load to GND
-//! (the load itself is referenced to +24V). Logical channels `Out1..=Out8`
-//! map directly to `GPIO0..=GPIO7`, in order, so no inversion is needed:
-//! logical "on" == GPIO high.
+//! Driven through a ULN2803A Darlington array, sinking the attached load to
+//! GND (the load itself is referenced to +24V). Logical channels `Out1..=Out4`
+//! map to `GPIO4..=GPIO7` and `Out5..=Out8` to `GPIO0..=GPIO3` (matching the
+//! PCB silkscreen). The level is inverted: logical "on" == GPIO low, so all
+//! outputs start high (off).
 //!
 //! ## Inputs
 //!
-//! Sensed through PC817 optocouplers with an onboard pull-up to 3.3V. The
-//! optocoupler's phototransistor sinks the GPIO low when the external input
-//! is active, so the electrical level is inverted with respect to the
-//! logical state reported over USB (logical/reported `1` == input active ==
-//! electrical low).
+//! Sensed through PC817 optocouplers. Measured on the board, idle inputs
+//! read low, so the level is not inverted: logical/reported `1` == input
+//! active == electrical high.
 //!
-//! Only 7 of the 8 input channels are wired on this board revision; `In8` is
-//! not connected and therefore not exposed here. The remaining channels are
+//! Only 7 of the 8 input channels are wired as inputs; `In1` is the clock
+//! and therefore not exposed here. The remaining channels are
 //! wired to GPIOs out of numerical order:
 //!
 //! | Logical channel | GPIO |
 //! |------------------|------|
-//! | In1              | 10   |
-//! | In2              | 9    |
-//! | In3              | 8    |
-//! | In4              | 14   |
-//! | In5              | 13   |
-//! | In6              | 12   |
-//! | In7              | 11   |
+//! | In2              | 10   |
+//! | In3              | 9    |
+//! | In4              | 8    |
+//! | In5              | 14   |
+//! | In6              | 13   |
+//! | In7              | 12   |
+//! | In8              | 11   |
 
 use embassy_rp::Peri;
 use embassy_rp::gpio::{Input, Level, Output, Pull};
@@ -43,25 +41,25 @@ pub use protocol::{NUM_INPUTS, NUM_OUTPUTS};
 
 /// Physical pins required to build [`Outputs`], in `Out1..=Out8` order.
 pub struct OutputPins {
-    pub out1: Peri<'static, PIN_0>,
-    pub out2: Peri<'static, PIN_1>,
-    pub out3: Peri<'static, PIN_2>,
-    pub out4: Peri<'static, PIN_3>,
-    pub out5: Peri<'static, PIN_4>,
-    pub out6: Peri<'static, PIN_5>,
-    pub out7: Peri<'static, PIN_6>,
-    pub out8: Peri<'static, PIN_7>,
+    pub out1: Peri<'static, PIN_4>,
+    pub out2: Peri<'static, PIN_5>,
+    pub out3: Peri<'static, PIN_6>,
+    pub out4: Peri<'static, PIN_7>,
+    pub out5: Peri<'static, PIN_0>,
+    pub out6: Peri<'static, PIN_1>,
+    pub out7: Peri<'static, PIN_2>,
+    pub out8: Peri<'static, PIN_3>,
 }
 
-/// Physical pins required to build [`Inputs`], in `In1..=In7` order.
+/// Physical pins required to build [`Inputs`], in `In2..=In8` order.
 pub struct InputPins {
-    pub in1: Peri<'static, PIN_10>,
-    pub in2: Peri<'static, PIN_9>,
-    pub in3: Peri<'static, PIN_8>,
-    pub in4: Peri<'static, PIN_14>,
-    pub in5: Peri<'static, PIN_13>,
-    pub in6: Peri<'static, PIN_12>,
-    pub in7: Peri<'static, PIN_11>,
+    pub in2: Peri<'static, PIN_10>,
+    pub in3: Peri<'static, PIN_9>,
+    pub in4: Peri<'static, PIN_8>,
+    pub in5: Peri<'static, PIN_14>,
+    pub in6: Peri<'static, PIN_13>,
+    pub in7: Peri<'static, PIN_12>,
+    pub in8: Peri<'static, PIN_11>,
 }
 
 /// All 8 digital outputs, indexed by logical channel (index 0 == `Out1`).
@@ -70,43 +68,42 @@ pub struct Outputs(pub [Output<'static>; NUM_OUTPUTS]);
 impl Outputs {
     pub fn new(pins: OutputPins) -> Self {
         Self([
-            Output::new(pins.out1, Level::Low),
-            Output::new(pins.out2, Level::Low),
-            Output::new(pins.out3, Level::Low),
-            Output::new(pins.out4, Level::Low),
-            Output::new(pins.out5, Level::Low),
-            Output::new(pins.out6, Level::Low),
-            Output::new(pins.out7, Level::Low),
-            Output::new(pins.out8, Level::Low),
+            Output::new(pins.out1, Level::High),
+            Output::new(pins.out2, Level::High),
+            Output::new(pins.out3, Level::High),
+            Output::new(pins.out4, Level::High),
+            Output::new(pins.out5, Level::High),
+            Output::new(pins.out6, Level::High),
+            Output::new(pins.out7, Level::High),
+            Output::new(pins.out8, Level::High),
         ])
     }
 
-    /// Set output `channel` (0-indexed, 0 == `Out1`) to `on`.
+    /// Set output `output` (board label number, `1..=8`) to `on`.
     ///
-    /// Silently ignores out-of-range channels.
-    pub fn set(&mut self, channel: u8, on: bool) {
-        if let Some(pin) = self.0.get_mut(channel as usize) {
-            pin.set_level(if on { Level::High } else { Level::Low });
+    /// Silently ignores out-of-range outputs.
+    pub fn set(&mut self, output: u8, on: bool) {
+        if let Some(pin) = self.0.get_mut((output as usize).wrapping_sub(1)) {
+            pin.set_level(if on { Level::Low } else { Level::High });
         }
     }
 }
 
-/// The 7 wired digital inputs, indexed by logical channel (index 0 == `In1`).
+/// The 7 wired digital inputs, indexed by logical channel (index 0 == `In2`).
 pub struct Inputs(pub [Input<'static>; NUM_INPUTS]);
 
 impl Inputs {
     pub fn new(pins: InputPins) -> Self {
-        // The board provides an onboard pull-up to 3.3V for each opto input;
-        // `Pull::Up` is added here too, redundantly, in case a board
-        // revision omits it.
+        // NOTE: idle inputs measured low despite this pull-up; if an
+        // unconnected input reads "on", switch to `Pull::Down`.
         Self([
-            Input::new(pins.in1, Pull::Up),
             Input::new(pins.in2, Pull::Up),
             Input::new(pins.in3, Pull::Up),
             Input::new(pins.in4, Pull::Up),
             Input::new(pins.in5, Pull::Up),
             Input::new(pins.in6, Pull::Up),
             Input::new(pins.in7, Pull::Up),
+            Input::new(pins.in8, Pull::Up),
         ])
     }
 }

@@ -51,15 +51,16 @@ two CDC-ACM interfaces are set up.
 
 | Logical channel | GPIO   | Notes                                    |
 |------------------|--------|-------------------------------------------|
-| Out1..Out8       | 0..7   | direct, logical "on" == GPIO high         |
-| In1              | 10     | electrical low == input active            |
-| In2              | 9      | electrical low == input active            |
-| In3              | 8      | electrical low == input active            |
-| In4              | 14     | electrical low == input active            |
-| In5              | 13     | electrical low == input active            |
-| In6              | 12     | electrical low == input active            |
-| In7              | 11     | electrical low == input active            |
-| In8              | —      | not wired on this board revision          |
+| Out1..Out4       | 4..7   | inverted, logical "on" == GPIO low        |
+| Out5..Out8       | 0..3   | inverted, logical "on" == GPIO low        |
+| In1              | —      | clock, not wired as an input              |
+| In2              | 10     | electrical high == input active           |
+| In3              | 9      | electrical high == input active           |
+| In4              | 8      | electrical high == input active           |
+| In5              | 14     | electrical high == input active           |
+| In6              | 13     | electrical high == input active           |
+| In7              | 12     | electrical high == input active           |
+| In8              | 11     | electrical high == input active           |
 
 See `src/io.rs` for details on the output/input electrical polarity.
 
@@ -80,7 +81,7 @@ GET                    request a full status snapshot
 Device -> host:
 
 ```
-EVT IN <channel> <0|1>            input <channel> (1..=7) changed, sent as soon as detected (debounced ~5ms)
+EVT IN <channel> <0|1>            input <channel> (2..=8) changed, sent as soon as detected (debounced ~5ms)
 STATUS OUT <8 bits> IN <7 bits>   full snapshot, sent in response to GET, MSB = highest channel
 ```
 

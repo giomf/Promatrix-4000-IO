@@ -18,24 +18,37 @@
         overlays = [ rust-overlay.overlays.default ];
       };
       toolchain = pkgs.rust-bin.fromRustupToolchainFile ./firmware/rust-toolchain.toml;
+      # One package per host-side member of the root Cargo workspace.
+      hostTool =
+        name:
+        pkgs.rustPlatform.buildRustPackage {
+          pname = name;
+          version = "0.1.0";
+          src = pkgs.lib.fileset.toSource {
+            root = ./.;
+            fileset = pkgs.lib.fileset.unions [
+              ./Cargo.toml
+              ./Cargo.lock
+              ./protocol
+              ./promatrix-io
+              ./promatrix-trigger
+            ];
+          };
+          buildAndTestSubdir = name;
+          cargoLock.lockFile = ./Cargo.lock;
+          nativeBuildInputs = [ pkgs.pkg-config ];
+          buildInputs = [ pkgs.udev ];
+          meta.mainProgram = name;
+        };
     in
     {
-      packages.${system}.default = pkgs.rustPlatform.buildRustPackage {
-        pname = "promatrix-io";
-        version = "0.1.0";
-        src = pkgs.lib.fileset.toSource {
-          root = ./.;
-          fileset = pkgs.lib.fileset.unions [
-            ./promatrix-io
-            ./protocol
-          ];
-        };
-        cargoRoot = "promatrix-io";
-        buildAndTestSubdir = "promatrix-io";
-        cargoLock.lockFile = ./promatrix-io/Cargo.lock;
-        nativeBuildInputs = [ pkgs.pkg-config ];
-        buildInputs = [ pkgs.udev ];
-        meta.mainProgram = "promatrix-io";
+      packages.${system} = {
+        promatrix-io = hostTool "promatrix-io";
+        promatrix-trigger = hostTool "promatrix-trigger";
+      };
+
+      nixosModules = {
+        promatrix-trigger = import ./nixos/trigger.nix self;
       };
 
       devShells.${system}.default = pkgs.mkShell {

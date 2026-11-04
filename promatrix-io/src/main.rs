@@ -2,7 +2,7 @@
 
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
-use control::{Client, Event, NUM_INPUTS, NUM_OUTPUTS};
+use promatrix_io::{Client, Event, FIRST_INPUT, NUM_INPUTS, NUM_OUTPUTS};
 
 #[derive(Parser)]
 #[command(about = "Talk to a Promatrix-4000-IO board over its USB serial port")]
@@ -17,10 +17,10 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Cmd {
-    /// Set output <channel> (1..=8) to 0 or 1.
+    /// Set output <output> (1..=8) to 0 or 1.
     Set {
         /// 1..=8
-        channel: u8,
+        output: u8,
         /// 0/1, on/off, or true/false
         #[arg(value_parser = parse_bool, action = clap::ArgAction::Set)]
         value: bool,
@@ -45,7 +45,7 @@ fn main() -> Result<()> {
     let mut client = Client::open(&cli.port).with_context(|| format!("opening {}", cli.port))?;
 
     match cli.command {
-        Cmd::Set { channel, value } => client.set_output(channel, value)?,
+        Cmd::Set { output, value } => client.set_output(output, value)?,
         Cmd::Get => print_status(client.status()?),
         Cmd::Watch => {
             print_status(client.status()?);
@@ -59,8 +59,8 @@ fn main() -> Result<()> {
 
 fn print_event(event: Event) {
     match event {
-        Event::InputChanged { channel, value } => {
-            println!("In{}  {}", channel + 1, if value { "on" } else { "off" });
+        Event::InputChanged { input, value } => {
+            println!("In{input}  {}", if value { "on" } else { "off" });
         }
         Event::Status { outputs, inputs } => print_status((outputs, inputs)),
     }
@@ -68,17 +68,17 @@ fn print_event(event: Event) {
 
 fn print_status((outputs, inputs): (u8, u8)) {
     println!("Outputs:");
-    print_channels("Out", outputs, NUM_OUTPUTS);
+    print_channels("Out", outputs, 1, NUM_OUTPUTS);
     println!("Inputs:");
-    print_channels("In", inputs, NUM_INPUTS);
+    print_channels("In", inputs, FIRST_INPUT, NUM_INPUTS);
 }
 
-/// Print one `  <prefix><channel>  on|off` line per channel (1-indexed),
-/// `<channel>` counting up from the least-significant bit of `value`.
-fn print_channels(prefix: &str, value: u8, count: usize) {
-    for ch in 1..=count {
-        let label = format!("{prefix}{ch}");
-        let state = if (value >> (ch - 1)) & 1 == 1 { "on" } else { "off" };
+/// Print one `  <prefix><channel>  on|off` line per channel, `<channel>`
+/// counting up from `first` at the least-significant bit of `value`.
+fn print_channels(prefix: &str, value: u8, first: u8, count: usize) {
+    for i in 0..count {
+        let label = format!("{prefix}{}", i + first as usize);
+        let state = if (value >> i) & 1 == 1 { "on" } else { "off" };
         println!("  {label:<5}{state}");
     }
 }

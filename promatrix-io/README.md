@@ -1,4 +1,4 @@
-# control
+# promatrix-io
 
 Host-side Rust library + CLI (`promatrix-io`) for talking to a
 Promatrix-4000-IO board over the USB CDC-ACM serial port its firmware
@@ -31,13 +31,13 @@ typically `/dev/ttyACM0` and its log interface `/dev/ttyACM1` — see
 ## Library
 
 ```rust
-let mut client = control::Client::open("/dev/ttyACM0")?;
+let mut client = promatrix_io::Client::open("/dev/ttyACM0")?;
 client.set_output(3, true)?;               // Out3 (1-indexed) on
 let (outputs, inputs) = client.status()?;  // blocks for the STATUS reply
 loop {
     match client.recv_event()? {
-        control::Event::InputChanged { channel, value } => { /* channel is 0-indexed */ }
-        control::Event::Status { outputs, inputs } => { /* bitmasks */ }
+        promatrix_io::Event::InputChanged { input, value } => { /* input is the board number, 2..=8 */ }
+        promatrix_io::Event::Status { outputs, inputs } => { /* bitmasks */ }
     }
 }
 ```

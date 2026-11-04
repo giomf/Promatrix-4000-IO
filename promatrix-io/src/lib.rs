@@ -7,7 +7,7 @@ use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 
-pub use protocol::{Command, Event, NUM_INPUTS, NUM_OUTPUTS};
+pub use protocol::{Command, Event, FIRST_INPUT, NUM_INPUTS, NUM_OUTPUTS};
 
 /// An open connection to the device.
 ///
@@ -50,12 +50,12 @@ impl Client {
         Ok(Self { port, events: rx })
     }
 
-    /// Set output `channel` (1..=8) to `value`.
-    pub fn set_output(&mut self, channel: u8, value: bool) -> io::Result<()> {
-        if channel == 0 || channel as usize > NUM_OUTPUTS {
-            return Err(io::Error::new(io::ErrorKind::InvalidInput, "channel out of range (1..=8)"));
+    /// Set output `output` (1..=8) to `value`.
+    pub fn set_output(&mut self, output: u8, value: bool) -> io::Result<()> {
+        if output == 0 || output as usize > NUM_OUTPUTS {
+            return Err(io::Error::new(io::ErrorKind::InvalidInput, "output out of range (1..=8)"));
         }
-        self.send(Command::SetOutput { channel: channel - 1, value })
+        self.send(Command::SetOutput { output, value })
     }
 
     /// Request a full [`Event::Status`] snapshot. The reply arrives

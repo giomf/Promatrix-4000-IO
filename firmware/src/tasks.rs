@@ -87,10 +87,10 @@ pub async fn usb_writer_task(mut sender: embassy_usb::class::cdc_acm::Sender<'st
 pub async fn output_task(mut outputs: Outputs) {
     loop {
         match COMMANDS.receive().await {
-            Command::SetOutput { channel, value } => {
-                crate::log_info!("OUT{} set to {}", channel + 1, value as u8);
-                outputs.set(channel, value);
-                state::set_output(channel, value);
+            Command::SetOutput { output, value } => {
+                crate::log_info!("OUT{} set to {}", output, value as u8);
+                outputs.set(output, value);
+                state::set_output(output, value);
             }
             Command::GetStatus => {
                 let event = Event::Status { outputs: state::outputs(), inputs: state::inputs() };
@@ -105,22 +105,22 @@ pub async fn output_task(mut outputs: Outputs) {
 /// Watches a single input pin for changes and reports them, debounced, on
 /// [`EVENTS`]. One instance of this task is spawned per wired input.
 #[embassy_executor::task(pool_size = 7)]
-pub async fn input_task(mut pin: Input<'static>, channel: u8) {
-    // Electrical low == optocoupler conducting == logical "active" (1).
-    let mut active = pin.is_low();
-    state::set_input(channel, active);
+pub async fn input_task(mut pin: Input<'static>, input: u8) {
+    // Electrical high == logical "active" (1), measured on the board.
+    let mut active = pin.is_high();
+    state::set_input(input, active);
 
     loop {
         pin.wait_for_any_edge().await;
         // Simple debounce: let the level settle before trusting it.
         Timer::after_millis(5).await;
 
-        let now_active = pin.is_low();
+        let now_active = pin.is_high();
         if now_active != active {
             active = now_active;
-            state::set_input(channel, active);
-            crate::log_info!("IN{} changed to {}", channel + 1, active as u8);
-            if EVENTS.try_send(Event::InputChanged { channel, value: active }).is_err() {
+            state::set_input(input, active);
+            crate::log_info!("IN{} changed to {}", input, active as u8);
+            if EVENTS.try_send(Event::InputChanged { input, value: active }).is_err() {
                 crate::log_warn!("event queue full, dropping input change event");
             }
         }
