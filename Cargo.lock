@@ -727,9 +727,11 @@ name = "promatrix-trigger"
 version = "0.1.0"
 dependencies = [
  "am03127-client",
+ "am03127-commands",
  "anyhow",
  "clap",
  "promatrix-io",
+ "tokio",
 ]
 
 [[package]]

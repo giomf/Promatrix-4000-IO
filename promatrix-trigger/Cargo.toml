@@ -5,6 +5,8 @@ edition = "2024"
 
 [dependencies]
 am03127-client = { git = "https://github.com/giomf/AM03127-Controller" }
+am03127-commands = { git = "https://github.com/giomf/AM03127-Controller" }
 anyhow = "1"
 clap = { version = "4", features = ["derive", "env"] }
 promatrix-io = { path = "../promatrix-io" }
+tokio = { version = "1", features = ["rt", "time"] }
