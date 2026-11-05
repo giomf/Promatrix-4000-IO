@@ -69,7 +69,11 @@ pub fn parse_command(line: &str) -> Result<Command, &'static str> {
 
     match parts.next() {
         Some("SET") => {
-            let output: u8 = parts.next().ok_or("missing channel")?.parse().map_err(|_| "bad channel")?;
+            let output: u8 = parts
+                .next()
+                .ok_or("missing channel")?
+                .parse()
+                .map_err(|_| "bad channel")?;
             let value = match parts.next().ok_or("missing value")? {
                 "1" => true,
                 "0" => false,
@@ -161,7 +165,12 @@ impl fmt::Display for Event {
         match *self {
             Event::InputChanged { input, value } => writeln!(f, "EVT IN {} {}", input, value as u8),
             Event::Status { outputs, inputs } => {
-                writeln!(f, "STATUS OUT {} IN {}", Bits(outputs, NUM_OUTPUTS), Bits(inputs, NUM_INPUTS))
+                writeln!(
+                    f,
+                    "STATUS OUT {} IN {}",
+                    Bits(outputs, NUM_OUTPUTS),
+                    Bits(inputs, NUM_INPUTS)
+                )
             }
         }
     }
@@ -188,15 +197,33 @@ mod tests {
 
     #[test]
     fn round_trips_commands() {
-        assert_eq!(parse_command("SET 3 1"), Ok(Command::SetOutput { output: 3, value: true }));
-        assert_eq!(parse_command("SET 8 0"), Ok(Command::SetOutput { output: 8, value: false }));
+        assert_eq!(
+            parse_command("SET 3 1"),
+            Ok(Command::SetOutput {
+                output: 3,
+                value: true
+            })
+        );
+        assert_eq!(
+            parse_command("SET 8 0"),
+            Ok(Command::SetOutput {
+                output: 8,
+                value: false
+            })
+        );
         assert_eq!(parse_command("GET"), Ok(Command::GetStatus));
         assert_eq!(parse_command("SET 9 1"), Err("channel out of range"));
         assert_eq!(parse_command("SET 0 1"), Err("channel out of range"));
         assert_eq!(parse_command("nonsense"), Err("unknown command"));
 
         assert_eq!(
-            std::format!("{}", Command::SetOutput { output: 3, value: true }),
+            std::format!(
+                "{}",
+                Command::SetOutput {
+                    output: 3,
+                    value: true
+                }
+            ),
             "SET 3 1\n"
         );
         assert_eq!(std::format!("{}", Command::GetStatus), "GET\n");
@@ -204,23 +231,50 @@ mod tests {
 
     #[test]
     fn round_trips_events() {
-        assert_eq!(parse_event("EVT IN 4 1"), Ok(Event::InputChanged { input: 4, value: true }));
+        assert_eq!(
+            parse_event("EVT IN 4 1"),
+            Ok(Event::InputChanged {
+                input: 4,
+                value: true
+            })
+        );
         assert_eq!(
             parse_event("STATUS OUT 10000000 IN 0000001\n"),
-            Ok(Event::Status { outputs: 0b1000_0000, inputs: 0b0000_0001 })
+            Ok(Event::Status {
+                outputs: 0b1000_0000,
+                inputs: 0b0000_0001
+            })
         );
         assert_eq!(parse_event(""), Err(""));
         assert_eq!(parse_event("EVT IN x 1"), Err("EVT IN x 1"));
         assert_eq!(parse_event("EVT IN 1 1"), Err("EVT IN 1 1"));
         assert_eq!(parse_event("EVT IN 9 1"), Err("EVT IN 9 1"));
-        assert_eq!(parse_event("EVT IN 8 1"), Ok(Event::InputChanged { input: 8, value: true }));
+        assert_eq!(
+            parse_event("EVT IN 8 1"),
+            Ok(Event::InputChanged {
+                input: 8,
+                value: true
+            })
+        );
 
         assert_eq!(
-            std::format!("{}", Event::InputChanged { input: 4, value: true }),
+            std::format!(
+                "{}",
+                Event::InputChanged {
+                    input: 4,
+                    value: true
+                }
+            ),
             "EVT IN 4 1\n"
         );
         assert_eq!(
-            std::format!("{}", Event::Status { outputs: 0b1000_0000, inputs: 0b0000_0001 }),
+            std::format!(
+                "{}",
+                Event::Status {
+                    outputs: 0b1000_0000,
+                    inputs: 0b0000_0001
+                }
+            ),
             "STATUS OUT 10000000 IN 0000001\n"
         );
     }

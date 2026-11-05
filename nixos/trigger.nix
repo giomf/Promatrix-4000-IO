@@ -24,6 +24,11 @@ in
       default = "/dev/promatrix";
       description = "Serial port of the board's data interface.";
     };
+
+    panelConfig = lib.mkOption {
+      type = lib.types.path;
+      description = "AM03127 panel config TOML.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -36,7 +41,7 @@ in
       description = "React to Promatrix-4000-IO input changes";
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
-        ExecStart = "${cfg.package}/bin/promatrix-trigger --port ${cfg.port}";
+        ExecStart = "${cfg.package}/bin/promatrix-trigger --port ${cfg.port} --panel-config ${cfg.panelConfig}";
         Restart = "always";
         RestartSec = 5;
         DynamicUser = true;

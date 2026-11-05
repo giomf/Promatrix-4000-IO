@@ -30,7 +30,9 @@ impl Client {
             .timeout(Duration::from_secs(60 * 60))
             .open()
             .map_err(|e| io::Error::other(format!("opening {path}: {e}")))?;
-        let reader = port.try_clone().map_err(|e| io::Error::other(format!("cloning {path}: {e}")))?;
+        let reader = port
+            .try_clone()
+            .map_err(|e| io::Error::other(format!("cloning {path}: {e}")))?;
 
         let (tx, rx) = mpsc::channel();
         thread::spawn(move || {
@@ -62,7 +64,10 @@ impl Client {
     /// Set output `output` (1..=8) to `value`.
     pub fn set_output(&mut self, output: u8, value: bool) -> io::Result<()> {
         if output == 0 || output as usize > NUM_OUTPUTS {
-            return Err(io::Error::new(io::ErrorKind::InvalidInput, "output out of range (1..=8)"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "output out of range (1..=8)",
+            ));
         }
         self.send(Command::SetOutput { output, value })
     }
@@ -91,7 +96,9 @@ impl Client {
 
     /// Block until the next event arrives from the device.
     pub fn recv_event(&self) -> io::Result<Event> {
-        self.events.recv().map_err(|_| io::Error::new(io::ErrorKind::BrokenPipe, "device disconnected"))
+        self.events
+            .recv()
+            .map_err(|_| io::Error::new(io::ErrorKind::BrokenPipe, "device disconnected"))
     }
 
     /// Return the next already-queued event, if any, without blocking.

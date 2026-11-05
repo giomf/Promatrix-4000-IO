@@ -35,7 +35,11 @@
             ];
           };
           buildAndTestSubdir = name;
-          cargoLock.lockFile = ./Cargo.lock;
+          cargoLock = {
+            lockFile = ./Cargo.lock;
+            # git deps (am03127-client) are fetched at the rev pinned in Cargo.lock.
+            allowBuiltinFetchGit = true;
+          };
           nativeBuildInputs = [ pkgs.pkg-config ];
           buildInputs = [ pkgs.udev ];
           meta.mainProgram = name;
