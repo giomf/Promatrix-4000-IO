@@ -4,7 +4,7 @@
 //! (through a ULN2803A Darlington array) and senses 7 digital inputs
 //! (through PC817 optocouplers) in near real-time, exposing both over a USB
 //! CDC-ACM ("virtual serial port") connection to a host PC. See
-//! [`protocol`] for the wire format and [`io`] for the physical pin mapping.
+//! [`promatrix_protocol`] for the wire format and [`io`] for the physical pin mapping.
 
 #![no_std]
 #![no_main]
@@ -57,7 +57,7 @@ async fn main(spawner: Spawner) {
     spawner.spawn(tasks::usb_writer_task(sender).unwrap());
     spawner.spawn(tasks::output_task(outputs).unwrap());
 
-    for (input, pin) in (protocol::FIRST_INPUT..).zip(input_pins) {
+    for (input, pin) in (promatrix_protocol::FIRST_INPUT..).zip(input_pins) {
         spawner.spawn(tasks::input_task(pin, input).unwrap());
     }
 }

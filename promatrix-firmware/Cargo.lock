@@ -605,25 +605,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d45db016d36b838f563236e9193d0ee6ce38f3f68b6c94e914b4929c96bbb890"
 
 [[package]]
-name = "firmware"
-version = "0.1.0"
-dependencies = [
- "cortex-m",
- "cortex-m-rt",
- "critical-section",
- "embassy-executor",
- "embassy-rp",
- "embassy-sync",
- "embassy-time",
- "embassy-usb",
- "heapless 0.9.3",
- "panic-halt",
- "portable-atomic",
- "protocol",
- "static_cell",
-]
-
-[[package]]
 name = "fixed"
 version = "1.31.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1084,7 +1065,26 @@ dependencies = [
 ]
 
 [[package]]
-name = "protocol"
+name = "promatrix-firmware"
+version = "0.1.0"
+dependencies = [
+ "cortex-m",
+ "cortex-m-rt",
+ "critical-section",
+ "embassy-executor",
+ "embassy-rp",
+ "embassy-sync",
+ "embassy-time",
+ "embassy-usb",
+ "heapless 0.9.3",
+ "panic-halt",
+ "portable-atomic",
+ "promatrix-protocol",
+ "static_cell",
+]
+
+[[package]]
+name = "promatrix-protocol"
 version = "0.1.0"
 
 [[package]]

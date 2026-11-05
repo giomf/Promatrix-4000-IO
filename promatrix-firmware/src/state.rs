@@ -32,7 +32,7 @@ pub fn set_output(output: u8, value: bool) {
 
 /// Record input `input` (board label number, `2..=8`) as being at logical level `value`.
 pub fn set_input(input: u8, value: bool) {
-    let bit = input - protocol::FIRST_INPUT;
+    let bit = input - promatrix_protocol::FIRST_INPUT;
     debug_assert!((bit as usize) < NUM_INPUTS);
     set_bit(&INPUT_STATE, bit, value);
 }

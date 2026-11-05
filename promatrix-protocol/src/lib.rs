@@ -1,5 +1,5 @@
 //! Line-based, human-readable wire protocol spoken over the USB CDC-ACM
-//! serial port the firmware (`../firmware`) exposes. Shared between the
+//! serial port the firmware (`../promatrix-firmware`) exposes. Shared between the
 //! firmware and the host control tool (`../promatrix-io`) so the two can never
 //! drift apart.
 //!

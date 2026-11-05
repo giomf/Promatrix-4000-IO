@@ -17,7 +17,7 @@
         inherit system;
         overlays = [ rust-overlay.overlays.default ];
       };
-      toolchain = pkgs.rust-bin.fromRustupToolchainFile ./firmware/rust-toolchain.toml;
+      toolchain = pkgs.rust-bin.fromRustupToolchainFile ./promatrix-firmware/rust-toolchain.toml;
       # One package per host-side member of the root Cargo workspace.
       hostTool =
         name:
@@ -29,7 +29,7 @@
             fileset = pkgs.lib.fileset.unions [
               ./Cargo.toml
               ./Cargo.lock
-              ./protocol
+              ./promatrix-protocol
               ./promatrix-io
               ./promatrix-trigger
             ];

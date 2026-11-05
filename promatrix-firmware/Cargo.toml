@@ -1,11 +1,11 @@
 [package]
-name = "firmware"
+name = "promatrix-firmware"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-# Shared host<->device wire protocol (see ../protocol).
-protocol = { path = "../protocol" }
+# Shared host<->device wire protocol (see ../promatrix-protocol).
+promatrix-protocol = { path = "../promatrix-protocol" }
 
 # Embassy async runtime and RP2040 HAL
 embassy-executor = "0.10.0"

@@ -1,5 +1,5 @@
 //! Client library for talking to a Promatrix-4000-IO board over the USB
-//! CDC-ACM serial port its firmware exposes. See the `protocol` crate for
+//! CDC-ACM serial port its firmware exposes. See the `promatrix-protocol` crate for
 //! the wire format this speaks.
 
 use std::io::{self, BufRead, BufReader, Write};
@@ -7,7 +7,7 @@ use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 
-pub use protocol::{Command, Event, FIRST_INPUT, NUM_INPUTS, NUM_OUTPUTS};
+pub use promatrix_protocol::{Command, Event, FIRST_INPUT, NUM_INPUTS, NUM_OUTPUTS};
 
 /// An open connection to the device.
 ///
@@ -46,7 +46,7 @@ impl Client {
                     Ok(0) | Err(_) => break,
                     Ok(_) => {}
                 }
-                if let Ok(event) = protocol::parse_event(&line)
+                if let Ok(event) = promatrix_protocol::parse_event(&line)
                     && tx.send(event).is_err()
                 {
                     break;

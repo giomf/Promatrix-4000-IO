@@ -6,5 +6,5 @@ edition = "2024"
 [dependencies]
 anyhow = "1"
 clap = { version = "4", features = ["derive", "env"] }
-protocol = { path = "../protocol" }
+promatrix-protocol = { path = "../promatrix-protocol" }
 serialport = "4"

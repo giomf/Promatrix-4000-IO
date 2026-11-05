@@ -7,7 +7,7 @@ use embassy_rp::gpio::Input;
 use embassy_time::Timer;
 use embassy_usb::driver::EndpointError;
 
-use protocol::{Command, Event};
+use promatrix_protocol::{Command, Event};
 
 use crate::channels::{COMMANDS, EVENTS};
 use crate::io::Outputs;
@@ -33,7 +33,7 @@ pub async fn usb_reader_task(mut receiver: embassy_usb::class::cdc_acm::Receiver
                         if b == b'\n' || b == b'\r' {
                             if !line.is_empty() {
                                 if let Ok(text) = core::str::from_utf8(&line) {
-                                    match protocol::parse_command(text) {
+                                    match promatrix_protocol::parse_command(text) {
                                         Ok(cmd) => {
                                             if COMMANDS.try_send(cmd).is_err() {
                                                 crate::log_warn!("command queue full, dropping command");

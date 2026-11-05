@@ -13,10 +13,10 @@ build-release:
 # own vendor ID and never checks for our (thirdparty, pid.codes) VID's reset
 # interface at all.
 flash: build
-    sudo picotool load -f --vid 0 -x -t elf target/thumbv6m-none-eabi/debug/firmware
+    sudo picotool load -f --vid 0 -x -t elf target/thumbv6m-none-eabi/debug/promatrix-firmware
 
 flash-release: build-release
-    sudo picotool load -f --vid 0 -x -t elf target/thumbv6m-none-eabi/release/firmware
+    sudo picotool load -f --vid 0 -x -t elf target/thumbv6m-none-eabi/release/promatrix-firmware
 
 # plain-text logs on the second USB CDC-ACM interface (port varies, check /dev/ttyACM*)
 logs port="/dev/ttyACM1":

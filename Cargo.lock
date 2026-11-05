@@ -714,9 +714,13 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
- "protocol",
+ "promatrix-protocol",
  "serialport",
 ]
+
+[[package]]
+name = "promatrix-protocol"
+version = "0.1.0"
 
 [[package]]
 name = "promatrix-trigger"
@@ -727,10 +731,6 @@ dependencies = [
  "clap",
  "promatrix-io",
 ]
-
-[[package]]
-name = "protocol"
-version = "0.1.0"
 
 [[package]]
 name = "quinn"

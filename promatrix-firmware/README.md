@@ -85,7 +85,7 @@ EVT IN <channel> <0|1>            input <channel> (2..=8) changed, sent as soon 
 STATUS OUT <8 bits> IN <7 bits>   full snapshot, sent in response to GET, MSB = highest channel
 ```
 
-See `../protocol/src/lib.rs` for the exact grammar (a small `#![no_std]`
+See `../promatrix-protocol/src/lib.rs` for the exact grammar (a small `#![no_std]`
 crate shared with the host control tool in `../promatrix-io`, so the two can't
 drift apart). `../promatrix-io`'s `promatrix-io` CLI speaks it out of the box; see
 `../promatrix-io/README.md`.
@@ -105,6 +105,6 @@ drift apart). `../promatrix-io`'s `promatrix-io` CLI speaks it out of the box; s
 * `memory.x` / `build.rs` – RP2040 linker memory layout.
 * `.cargo/config.toml` – build target and `cargo run`'s `picotool` runner.
 
-See also `../protocol` (shared wire protocol) and `../promatrix-io` (host CLI
+See also `../promatrix-protocol` (shared wire protocol) and `../promatrix-io` (host CLI
 and library).
 * `justfile` – build/flash/log recipes (see `just --list`).

@@ -3,7 +3,7 @@
 Host-side Rust library + CLI (`promatrix-io`) for talking to a
 Promatrix-4000-IO board over the USB CDC-ACM serial port its firmware
 exposes: set outputs, request a status snapshot, and stream input-change
-events. Speaks the wire protocol defined in `../protocol` — the same crate
+events. Speaks the wire protocol defined in `../promatrix-protocol` — the same crate
 the firmware itself uses, so the two can't drift apart.
 
 ## Prerequisites
@@ -24,7 +24,7 @@ just run -- --port /dev/ttyACM0 watch       # snapshot, then stream EVT lines
 required; it can also be set once via the `PROMATRIX_PORT` env var instead
 of passing `-p`/`--port` every time. The board's data interface is
 typically `/dev/ttyACM0` and its log interface `/dev/ttyACM1` — see
-`../firmware/README.md`.
+`../promatrix-firmware/README.md`.
 
 `set` accepts `0`/`1`, `on`/`off`, or `true`/`false` for the value.
 
@@ -49,7 +49,7 @@ thread. `status` sends `GetStatus` and blocks for the `Status` reply
 specifically, discarding any unsolicited event (e.g. an `InputChanged`)
 that happens to race ahead of it — use `get_status` + `recv_event`
 directly if you want to see those too. Unrecognized lines from the device
-(stray log output, anything the `protocol` crate's `parse_event` doesn't
+(stray log output, anything the `promatrix-protocol` crate's `parse_event` doesn't
 understand) are silently dropped.
 
 ## Layout

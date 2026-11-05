@@ -1,5 +1,5 @@
 [workspace]
 resolver = "3"
-members = ["protocol", "promatrix-io", "promatrix-trigger"]
+members = ["promatrix-protocol", "promatrix-io", "promatrix-trigger"]
 # Built separately: different target, toolchain and .cargo/config.toml.
-exclude = ["firmware"]
+exclude = ["promatrix-firmware"]

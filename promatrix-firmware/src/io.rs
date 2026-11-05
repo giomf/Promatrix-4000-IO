@@ -37,7 +37,7 @@ use embassy_rp::peripherals::{
 
 /// Number of digital outputs/inputs, re-exported from the shared wire
 /// protocol crate since it also defines the `STATUS` bitmask widths.
-pub use protocol::{NUM_INPUTS, NUM_OUTPUTS};
+pub use promatrix_protocol::{NUM_INPUTS, NUM_OUTPUTS};
 
 /// Physical pins required to build [`Outputs`], in `Out1..=Out8` order.
 pub struct OutputPins {
